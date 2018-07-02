@@ -1,0 +1,22 @@
+*~
+
+# C extensions
+*.so
+
+# Distribution / packaging
+env/
+build/
+dist/
+downloads/
+lib/
+lib64/
+.cache
+*.log
+./*.deb
+./pocket-piap-extras-vpn/debian/*
+./pocket-piap-extras-vpn/debian/*/*
+./pocket-piap-extras-vpn/debian/*/*/*
+./pocket-piap-extras-vpn/*-stamp
+./pocket-piap-extras-vpn/*~
+./pocket-piap-extras-vpn/pocket-piap-extras-vpn
+./pocket-piap-extras-vpn/pocket-piap-extras-vpn/*
