@@ -1,0 +1,164 @@
+#!/usr/bin/make -f
+
+###############################################################################
+## THIS FILE IS NOT PART OF the OFFICIAL Pocket PiAP or OFFICIAL related works.
+###############################################################################
+# This rules file was modified to this version by Kendrick Walls
+# June 2018
+# This rules file was modified from previous version by Kendrick Walls
+# August 2017
+# This rules file was coded by Kendrick Walls
+# August 2016
+# File template was modified from "Debian Rules" by Miriam Ruiz
+#
+# Big thanks for some of their code goes to:
+#    * Debian Rules (GPL-2) by Miriam Ruiz <little_miry@yahoo.es> (January 2005)
+#    * Manoj Srivastava
+#    * Helen Faulkner
+#    * Dafydd Harries
+#    * Gregory Pomerantz
+
+###############################################################################
+##
+## This file is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This file is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this file; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+###############################################################################
+
+# Name of the package
+package=pocket-piap-extras-vpn
+
+# Function to check if we're in the correct dir (thanks Manoj)
+define checkdir
+	@test -f debian/rules -a -d $(package) || \
+	(echo "Not in correct source directory" ; exit 1)
+endef
+
+# Function to check if we're root (thanks Manoj)
+define checkroot
+	@test $$(id -u) = 0 || (echo "need root priviledges"; exit 1)
+endef
+
+# Top directory of the source code (thanks Manoj)
+SRCTOP := $(shell if [ "$$PWD" != "" ]; then echo $$PWD; else pwd; fi)
+# Destination directory where files will be installed
+DESTDIR = $(SRCTOP)/debian/$(package)
+
+# Definition of directories
+BIN_DIR = $(DESTDIR)/usr/bin
+SBIN_DIR = $(DESTDIR)/usr/sbin
+SHARE_DIR = $(DESTDIR)/usr/share/$(package)
+ETC_DIR = $(DESTDIR)/etc/
+CRON_DIR = $(ETC_DIR)/cron.hourly/
+DOCS_DIR = $(DESTDIR)/usr/share/doc/$(package)
+MAN_DIR = $(DESTDIR)/usr/share/man/man7
+MAN_TOOLS_DIR = $(DESTDIR)/usr/share/man/man1
+MENU_DIR = $(DESTDIR)/usr/lib/menu
+
+# Stamp Rules
+
+configure-stamp:
+	$(checkdir)
+	#./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+	touch -am configure-stamp
+
+build-stamp: configure-stamp
+	$(checkdir)
+	-rm -f build-stamp
+	$(MAKE)
+	touch -am build-stamp
+
+# Debian rules
+
+build: build-stamp
+
+clean: configure-stamp
+	$(checkdir)
+	-rm -f *-stamp || true
+	#$(MAKE) distclean
+	-rm -rf debian/$(package) || true
+	-rm -f debian/*~ || true
+	-rm -f debian/.DS_Store || true
+	-rm -f debian/files || true
+	-rm -f debian/substvars || true
+
+binary-indep: build
+
+# Definitions for install
+INST_OWN = -o root -g root
+#INST_OWN = -o root -g adm
+MAKE_DIR = install -p -d $(INST_OWN) -m 0755
+INST_FILE = install -c $(INST_OWN) -m 0644
+INST_PROG = install -c $(INST_OWN) -m 0750 -s
+INST_SCRIPT = install -c $(INST_OWN) -m 0750
+
+binary-arch: build
+	$(checkdir)
+	$(checkroot)
+	
+	# Install Extra Resources
+	$(MAKE_DIR) $(ETC_DIR)
+	$(MAKE_DIR) $(CRON_DIR)
+	$(INST_SCRIPT) check_vpn $(CRON_DIR)/check_vpn
+	$(INST_FILE) ocserv.conf $(ETC_DIR)/ocserv.conf
+
+	$(MAKE_DIR) $(DESTDIR)/DEBIAN
+	
+	# Install Docs
+	$(MAKE_DIR) $(DOCS_DIR)
+	$(INST_FILE) debian/copyright $(DOCS_DIR)/copyright
+	$(INST_FILE) debian/changelog $(DOCS_DIR)/changelog.Debian
+	#$(INST_FILE) README $(DOCS_DIR)/README
+	
+	# Install Manpages
+	$(MAKE_DIR) $(MAN_DIR)
+	$(INST_FILE) $(package).7 $(MAN_DIR) || true
+	
+	# Install Menu and Icon
+	#$(MAKE_DIR) $(MENU_DIR)
+	#$(INST_FILE) debian/menu $(MENU_DIR)/$(package)
+	
+	# Install Package Scripts
+	#$(INST_SCRIPT) debian/postinst $(DESTDIR)/DEBIAN
+	#$(INST_SCRIPT) debian/postrm $(DESTDIR)/DEBIAN
+	
+	# Compress Docs (thanks Helen)
+	gzip -9 $(DOCS_DIR)/changelog.Debian
+	gzip -9 $(MAN_TOOLS_DIR)/$(package).7 || true
+	
+	# Strip the symbols from the executable (thanks Helen)
+	# TODO: the stripping part in binary-arch should honor the DEB_BUILD_OPTIONS environment variable and not strip stuff when it includes 'nostrip'
+	#strip -R .comment $(BIN_DIR)/$(package)
+	
+	# Work out the shared library dependancies (thanks Helen)
+	dpkg-shlibdeps $(package)
+	
+	# Generate the control file (thanks Helen)
+	dpkg-gencontrol -isp -P$(DESTDIR)
+	
+	# Make DEBIAN/md5sums (thanks Helen)
+	cd $(DESTDIR) && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | xargs -r0 md5sum > DEBIAN/md5sums
+	# Make DEBIAN/sha1sums (thanks Kendrick)
+	cd $(DESTDIR) && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | xargs -r0 sha1sum > DEBIAN/sha1sums
+	# Make DEBIAN/sha256sums (thanks Kendrick)
+	cd $(DESTDIR) && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | xargs -r0 sha256sum > DEBIAN/sha256sums
+	
+	# Create the .deb package (thanks Helen)
+	dpkg-deb -b $(DESTDIR) ../
+
+# Below here is fairly generic really
+
+binary: binary-indep binary-arch
+
+.PHONY: binary binary-arch binary-indep clean build

@@ -1,0 +1,18 @@
+Source: pocket-piap-extras-vpn
+Section: admin
+Priority: optional
+Maintainer: reactive-firewall <reactive-firewall+bugs@gmail.com>
+Build-Depends: debhelper (>=10)
+Suggests: pocket-piap-extras-rpi2-us
+Standards-Version: 4.0.0
+Vcs-Git: https://github.com/reactive-firewall/pocket-piap-extras-vpn.git
+
+Package: pocket-piap-extras-vpn
+Version: 0.3.6
+Architecture: any
+Depends: ${shlibs:Depends}, ocserv (>=0.11)
+Description: Extras for Pocket PiAP for running VPN.
+ This Package of Extras configures VPN.
+ This Package of Extras configures the timezone.
+ This Package is extra and not strictly needed for Pocket PiAP to run.
+ BETA.
