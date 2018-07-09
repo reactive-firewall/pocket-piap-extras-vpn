@@ -1,0 +1,5 @@
+linters:
+    shellcheck:
+        shell: bash
+files:
+    ignore: ['*~', '.git', 'tests/*']
