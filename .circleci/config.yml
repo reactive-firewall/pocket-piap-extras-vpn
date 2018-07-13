@@ -36,7 +36,7 @@ jobs:
           shell: /bin/bash
           name: "clean up for test"
           command: |
-            make clean || true
+            make clean && make init || true
       - run:
           shell: /bin/bash
           name: "Unit Tests"

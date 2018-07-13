@@ -16,6 +16,7 @@ matrix:
     dist: precice
 
 install:
+  - make init || true
   - make build || true
 
 install:
