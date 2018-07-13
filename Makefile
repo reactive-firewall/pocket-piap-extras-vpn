@@ -63,6 +63,7 @@ build:
 	$(QUIET)$(ECHO) "Done."
 
 init:
+	$(QUITE)mkdir -m 755 ./pocket-piap-extras-vpn/pocket-piap-extras-vpn 2>/dev/null || true ;
 	$(QUIET)$(ECHO) "$@: Done."
 
 install: must_be_root build
