@@ -58,7 +58,7 @@ endif
 
 PHONY: must_be_root cleanup
 
-build:
+build: init
 	$(QUIET)$(MAKE) --directory=./pocket-piap-extras-vpn -f ./makefile install
 	$(QUIET)$(ECHO) "Done."
 
