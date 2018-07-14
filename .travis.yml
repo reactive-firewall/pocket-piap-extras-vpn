@@ -16,16 +16,16 @@ matrix:
     dist: precice
 
 install:
-  - make init || true
-  - make build || true
-
-install:
   - make clean || true
   - make install || true
 
-script:
+before_script:
   - make clean || true
-  - make test
+
+script:
+  - make init || true
+  - make build || true
+  - make test || true
 
 after_success:
   - make uninstall || true
