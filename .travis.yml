@@ -16,18 +16,21 @@ matrix:
     dist: precice
 
 install:
-  - make clean || true
-  - make install || true
+  - make clean 2>/dev/null || true
+  - sudo make install || true
 
 before_script:
-  - make clean || true
+  - make clean 2>/dev/null || true
 
 script:
   - make init || true
-  - make build || true
+  - sudo make build || true
   - make test || true
 
 after_success:
-  - make uninstall || true
-  - make clean || true
+  - sudo make uninstall || true
+  - make clean 2>/dev/null || true
+
+after_failure:
+  - make clean 2>/dev/null || true
 
